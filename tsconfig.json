@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "downlevelIteration": true,
+    "removeComments": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "module": "commonjs"
+  }
+}

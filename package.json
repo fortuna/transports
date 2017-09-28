@@ -1,0 +1,10 @@
+{
+  "name": "transports",
+  "version": "1.0.0",
+  "author": "",
+  "license": "Apache-2",
+  "devDependencies": {
+    "@bazel/typescript": "^0.2.2",
+    "@types/node": "6"
+  }
+}
