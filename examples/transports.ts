@@ -1,9 +1,12 @@
 ///  <reference types="node"/>
 // TODO:
-// - HTTP connection
+// - HTTP request over socket
 // - Proxies: HTTP Connect, SOCKS
-// - Delegate to subprocess. Show with obsf4
+// - Example with obsf4
+//
+// App TODO:
 // - Handle encrypt/decrypt errors
+// - Use line buffering
 
 import * as child_process from 'child_process';
 import * as crypto from 'crypto';
@@ -20,6 +23,10 @@ export function childProcessSocket(command: string): model.Socket {
   const childProcess = child_process.spawn(command);
   return new model.Socket(childProcess.stdout, childProcess.stdin);
 }
+
+// ======================================
+// ADAPTORS
+// ======================================
 
 export function newPassThroughAdaptor() {
   return new model.Adaptor(() => streamAsSocket(new stream.PassThrough()),
@@ -49,6 +56,10 @@ export function newCommandAdaptor(leftToRightCmd: string, rightToLeftCmd: string
 export function newExternalGzipAdaptor(): model.Adaptor {
   return newCommandAdaptor('gzip', 'gunzip');
 }
+
+// ======================================
+// TCP Connection support
+// ======================================
 
 export class NetTcpClient implements model.TcpClient {
   connect(options: {host: string, port: number}, connectCallback: Function): model.Socket {
