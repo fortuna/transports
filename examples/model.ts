@@ -1,5 +1,7 @@
 ///  <reference types="node"/>
 
+// Sockets enable bi-directional communication by providing a ReadableStream to read the input
+// and WritableStream to write the output.
 export class Socket {
   constructor(public readStream: NodeJS.ReadableStream, public writeStream: NodeJS.WritableStream) {}
   bind(other: Socket): void {
@@ -8,22 +10,34 @@ export class Socket {
   }
 }
 
+// A stream that is both readable and writable.
 export type TwoWayStream = NodeJS.ReadableStream & NodeJS.WritableStream;
 
 export class Adaptor {
-  constructor(public leftToRight: TwoWayStream,
-              public rightToLeft: TwoWayStream) {
+  constructor(private createLeftToRight: () => TwoWayStream,
+              private createRightToLeft: () => TwoWayStream) {
   }
 
-  bindAadptor(other: Adaptor): Adaptor {
-    this.leftToRight.pipe(other.leftToRight);
-    other.rightToLeft.pipe(this.rightToLeft);
-    return new Adaptor(this.leftToRight, other.rightToLeft);
+// Bind to another Adaptor to create a new combined adaptor. 
+bindAadptor(other: Adaptor): Adaptor {
+    const combinedCreateLeftToRight = () => {
+      return this.createLeftToRight().pipe(other.createLeftToRight());
+    };
+    const combinedCreateRightToLeft = () => {
+      return other.createRightToLeft().pipe(this.createRightToLeft());
+    }
+    return new Adaptor(combinedCreateLeftToRight, combinedCreateRightToLeft);
   }
 
+  // Bind to a Socket to create a new Socket with an adapted interface.
   bindSocket(socket: Socket): Socket {
-    this.leftToRight.pipe(socket.writeStream);
-    return new Socket(socket.readStream.pipe(this.rightToLeft),
-                      this.leftToRight);
+    const leftToRight = this.createLeftToRight();
+    leftToRight.pipe(socket.writeStream);
+    return new Socket(socket.readStream.pipe(this.createRightToLeft()),
+                      leftToRight);
   }
+}
+
+export interface TcpClient {
+  connect(options: {host: string, port: number}, connectCallback: Function): Socket
 }

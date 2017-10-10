@@ -46,11 +46,11 @@ function main() {
     throw error;
   });
 
-  var svraddr = '127.0.0.1';
-  var svrport = 8080;
+  var srvaddr = '127.0.0.1';
+  var srvport = 8080;
 
-  server.listen(svrport, svraddr);
-  console.log('Server Created at ' + svraddr + ':' + svrport + '\n');
+  server.listen(srvport, srvaddr);
+  console.log('Server Created at ' + srvaddr + ':' + srvport + '\n');
 }
 
 main()
