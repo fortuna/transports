@@ -19,7 +19,7 @@ export type TwoWayStream = NodeJS.ReadableStream & NodeJS.WritableStream;
 
 export class Adaptor {
   // TODO: Consider reverting to Read/Write streams if we can
-  // create one from a read and a write streams.
+  // create one from separate read and write streams.
   constructor(private createLeftToRight: () => Socket,
               private createRightToLeft: () => Socket) {
   }
@@ -41,10 +41,12 @@ export class Adaptor {
   }
 }
 
+// Allows connections to a server on a hostname:port.
 export interface TcpClient {
   connect(options: {host: string, port: number}, connectCallback: Function): Socket
 }
 
+// Runs a server accepting connections on a hostname:port.
 export interface TcpServer {
   onConnection(handler: (socket: Socket) => void): void    
   on(event: 'error' | 'data' | 'end', handler: Function): void
