@@ -18,8 +18,8 @@ export class Adaptor {
               private createRightToLeft: () => TwoWayStream) {
   }
 
-// Bind to another Adaptor to create a new combined adaptor. 
-bindAadptor(other: Adaptor): Adaptor {
+  // Bind to another Adaptor to create a new combined adaptor. 
+  bindAadptor(other: Adaptor): Adaptor {
     const combinedCreateLeftToRight = () => {
       return this.createLeftToRight().pipe(other.createLeftToRight());
     };
@@ -40,4 +40,8 @@ bindAadptor(other: Adaptor): Adaptor {
 
 export interface TcpClient {
   connect(options: {host: string, port: number}, connectCallback: Function): Socket
+}
+
+export interface TcpServer {
+  on(event: 'connection' | 'error' | 'data' | 'end', handler: Function): void
 }

@@ -3,15 +3,16 @@
 // - HTTP connection
 // - Proxies: HTTP Connect, SOCKS
 // - Delegate to subprocess. Show with obsf4
+// - Handle encrypt/decrypt errors
 
 import * as crypto from 'crypto';
 import * as net from 'net';
+import * as stream from 'stream';
 import * as zlib from 'zlib';
 import * as model from './model';
 
-export function newTcpSocket(options: any, connectCallback: Function): model.Socket {
-  const socket = net.createConnection(options, connectCallback) as model.TwoWayStream;
-  return new model.Socket(socket, socket);
+export function newPassThroughAdaptor() {
+  return new model.Adaptor(() => new stream.PassThrough(), () => new stream.PassThrough());
 }
 
 // TODO: Flush on new line
@@ -37,5 +38,29 @@ export class AdaptedTcpClient implements model.TcpClient {
   connect(options: {host: string, port: number}, connectCallback: Function): model.Socket {
     const socket = this.baseConnector.connect(options, connectCallback);
     return this.adaptor.bindSocket(socket);
+  }
+}
+
+export class NetTcpServer implements model.TcpServer {
+  private server = net.createServer();
+  private adaptor: model.Adaptor | null = null;
+  constructor(private port: number, private hostname?: string) {}
+  setAdaptor(adaptor: model.Adaptor) {
+    this.adaptor = adaptor;
+  }
+  onConnection(handler: (socket: model.Socket) => void): void {
+    this.server.on('connection', (netSocket: net.Socket) => {
+      let socket = new model.Socket(netSocket as model.TwoWayStream, netSocket);
+      if (this.adaptor) {
+        socket = this.adaptor.bindSocket(socket);
+      }
+      handler(socket);
+    });
+  }
+  on(event: 'error' | 'data' | 'end', handler: Function) {
+    this.server.on(event, handler);
+  }
+  listen() {
+    this.server.listen(this.port, this.hostname);
   }
 }

@@ -7,7 +7,10 @@ import * as transports from './transports';
 
 function main(argv: string[]) {
   const tcpConnector = new transports.AdaptedTcpClient(
+    // transports.newPassThroughAdaptor(), new transports.NetTcpClient());
     transports.newGzipAdaptor(), new transports.NetTcpClient());
+    // transports.newEncryptedAdaptor('aes192', 'a password'), new transports.NetTcpClient());
+  //const tcpConnector = new transports.NetTcpClient();
 
   const connection = tcpConnector.connect({port: 8080, host: 'localhost'}, () => {
     console.log('Connected to server via TCP!');

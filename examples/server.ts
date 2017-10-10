@@ -5,15 +5,17 @@ import * as transports from './transports';
 import * as random_id from './random_id';
 
 function main() {
-  var sockets = [] as model.Socket[];
+  const sockets = [] as model.Socket[];
 
-  var server = net.createServer();
+  const srvaddr = '127.0.0.1';
+  const srvport = 8080;
 
-  server.on('connection', (tcpConnection: net.Socket) => {
-    let connection = transports.newGzipAdaptor().bindSocket(
-    // let connection = transports.newEncryptedAdaptor('aes192', 'a password').bindSocket(
-        new model.Socket(tcpConnection as NodeJS.ReadableStream, tcpConnection));
+  const server = new transports.NetTcpServer(srvport, srvaddr);
+  server.setAdaptor(transports.newGzipAdaptor());
+  // server.setAdaptor(transports.newPassThroughAdaptor());
+  // server.setAdaptor(transports.newEncryptedAdaptor('aes192', 'a password'));
 
+  server.onConnection((connection: model.Socket) => {
     // You can only get the host and port if you know it's a TCP stream.
     // const clientId = `${connection.remoteAddress}:${connection.remotePort}`;
     const clientId = random_id.randomId();
@@ -22,9 +24,10 @@ function main() {
     connection.writeStream.write(`Hello ${clientId}\n`);
     sockets.push(connection);
 
-    connection.readStream.on('data', (data: any) => {
+    connection.readStream.on('data', (data: string) => {
       process.stdout.write(`[${clientId}]: ${data}`);
       var len = sockets.length;
+      // Broadcast message to all connected clients.
       for (let otherSocket of sockets) {
         if (otherSocket && otherSocket != connection) {
           otherSocket.writeStream.write(`[${clientId}]: ${data}`);
@@ -41,15 +44,12 @@ function main() {
     });
   });
 
-  server.on('error', (error) => {
+  server.on('error', (error: Error) => {
     console.error(error);
     throw error;
   });
 
-  var srvaddr = '127.0.0.1';
-  var srvport = 8080;
-
-  server.listen(srvport, srvaddr);
+  server.listen();
   console.log('Server Created at ' + srvaddr + ':' + srvport + '\n');
 }
 
