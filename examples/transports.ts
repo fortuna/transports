@@ -5,25 +5,51 @@
 // - Delegate to subprocess. Show with obsf4
 // - Handle encrypt/decrypt errors
 
+import * as child_process from 'child_process';
 import * as crypto from 'crypto';
 import * as net from 'net';
 import * as stream from 'stream';
 import * as zlib from 'zlib';
 import * as model from './model';
 
+export function streamAsSocket(stream: model.TwoWayStream): model.Socket {
+  return new model.Socket(stream, stream);
+}
+
 export function newPassThroughAdaptor() {
-  return new model.Adaptor(() => new stream.PassThrough(), () => new stream.PassThrough());
+  return new model.Adaptor(() => streamAsSocket(new stream.PassThrough()),
+                           () => streamAsSocket(new stream.PassThrough()));
 }
 
 // TODO: Flush on new line
 export function newEncryptedAdaptor(cipher: string, password: string): model.Adaptor {
-  return new model.Adaptor(() => crypto.createCipher(cipher, password),
-                           () => crypto.createDecipher(cipher, password));
+  return new model.Adaptor(() => streamAsSocket(crypto.createCipher(cipher, password)),
+                           () => streamAsSocket(crypto.createDecipher(cipher, password)));
 }
 
 // TODO: Flush on new line
 export function newGzipAdaptor(): model.Adaptor {
-  return new model.Adaptor(() => zlib.createGzip(), () => zlib.createGunzip());
+  return new model.Adaptor(() => streamAsSocket(zlib.createGzip()),
+                           () => streamAsSocket(zlib.createGunzip()));
+}
+
+// Creates an Adaptor where the leftToRight and rightToLeft sockets will come from
+// the standard input and output of the given commands.
+export function newCommandAdaptor(leftToRightCmd: string, rightToLeftCmd: string) {
+  const createLeftToRight = () => {
+    const leftToRightProcess = child_process.spawn(leftToRightCmd);
+    return new model.Socket(leftToRightProcess.stdout, leftToRightProcess.stdin);  
+  };
+  const createRightToLeft = () => {
+    const rightToLeftProcess = child_process.spawn(rightToLeftCmd);
+    return new model.Socket(rightToLeftProcess.stdout, rightToLeftProcess.stdin);  
+  };
+  return new model.Adaptor(createLeftToRight, createRightToLeft);  
+}
+
+// A gzip adaptor that uses an external gzip/gunzip tool.
+export function newExternalGzipAdaptor(): model.Adaptor {
+  return newCommandAdaptor('gzip', 'gunzip');
 }
 
 export class NetTcpClient implements model.TcpClient {
@@ -45,8 +71,9 @@ export class NetTcpServer implements model.TcpServer {
   private server = net.createServer();
   private adaptor: model.Adaptor | null = null;
   constructor(private port: number, private hostname?: string) {}
-  setAdaptor(adaptor: model.Adaptor) {
+  setAdaptor(adaptor: model.Adaptor): NetTcpServer {
     this.adaptor = adaptor;
+    return this;
   }
   onConnection(handler: (socket: model.Socket) => void): void {
     this.server.on('connection', (netSocket: net.Socket) => {

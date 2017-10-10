@@ -10,10 +10,10 @@ function main() {
   const srvaddr = '127.0.0.1';
   const srvport = 8080;
 
-  const server = new transports.NetTcpServer(srvport, srvaddr);
-  server.setAdaptor(transports.newGzipAdaptor());
-  // server.setAdaptor(transports.newPassThroughAdaptor());
-  // server.setAdaptor(transports.newEncryptedAdaptor('aes192', 'a password'));
+  const server: model.TcpServer = new transports.NetTcpServer(srvport, srvaddr)
+      .setAdaptor(transports.newGzipAdaptor());
+  //  .setAdaptor(transports.newPassThroughAdaptor());
+  //  .setAdaptor(transports.newEncryptedAdaptor('aes192', 'a password'));
 
   server.onConnection((connection: model.Socket) => {
     // You can only get the host and port if you know it's a TCP stream.
