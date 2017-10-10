@@ -16,7 +16,6 @@ function main(argv: string[]) {
   const connection = tcpClient.connect({port: 8080, host: 'localhost'}, () => {
     console.log('Connected to server via TCP!');
   })
-  //const cryptoConnection = transports.newEncryptedAdaptor('aes192', 'a password')
 
   connection.writeStream.on('end', () => {
     console.log("Session done");
