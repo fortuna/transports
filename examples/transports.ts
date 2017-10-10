@@ -16,6 +16,11 @@ export function streamAsSocket(stream: model.TwoWayStream): model.Socket {
   return new model.Socket(stream, stream);
 }
 
+export function childProcessSocket(command: string): model.Socket {
+  const childProcess = child_process.spawn(command);
+  return new model.Socket(childProcess.stdout, childProcess.stdin);
+}
+
 export function newPassThroughAdaptor() {
   return new model.Adaptor(() => streamAsSocket(new stream.PassThrough()),
                            () => streamAsSocket(new stream.PassThrough()));
@@ -36,15 +41,8 @@ export function newGzipAdaptor(): model.Adaptor {
 // Creates an Adaptor where the leftToRight and rightToLeft sockets will come from
 // the standard input and output of the given commands.
 export function newCommandAdaptor(leftToRightCmd: string, rightToLeftCmd: string) {
-  const createLeftToRight = () => {
-    const leftToRightProcess = child_process.spawn(leftToRightCmd);
-    return new model.Socket(leftToRightProcess.stdout, leftToRightProcess.stdin);  
-  };
-  const createRightToLeft = () => {
-    const rightToLeftProcess = child_process.spawn(rightToLeftCmd);
-    return new model.Socket(rightToLeftProcess.stdout, rightToLeftProcess.stdin);  
-  };
-  return new model.Adaptor(createLeftToRight, createRightToLeft);  
+  return new model.Adaptor(() => childProcessSocket(leftToRightCmd),
+                           () => childProcessSocket(rightToLeftCmd));
 }
 
 // A gzip adaptor that uses an external gzip/gunzip tool.
