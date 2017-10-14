@@ -15,13 +15,13 @@ import * as stream from 'stream';
 import * as zlib from 'zlib';
 import * as model from './model';
 
-export function streamAsSocket(stream: model.TwoWayStream): model.Socket {
-  return new model.Socket(stream, stream);
+export function streamAsSocket(stream: model.TwoWayStream): model.Stream {
+  return new model.Stream(stream, stream);
 }
 
-export function childProcessSocket(command: string): model.Socket {
+export function childProcessSocket(command: string): model.Stream {
   const childProcess = child_process.spawn(command);
-  return new model.Socket(childProcess.stdout, childProcess.stdin);
+  return new model.Stream(childProcess.stdout, childProcess.stdin);
 }
 
 // ======================================
@@ -62,15 +62,15 @@ export function newExternalGzipAdaptor(): model.Adaptor {
 // ======================================
 
 export class NetTcpClient implements model.TcpClient {
-  connect(options: {host: string, port: number}, connectCallback: Function): model.Socket {
+  connect(options: {host: string, port: number}, connectCallback: Function): model.Stream {
     const socket = net.createConnection(options, connectCallback) as model.TwoWayStream;
-    return new model.Socket(socket, socket);
+    return new model.Stream(socket, socket);
   }
 }
 
 export class AdaptedTcpClient implements model.TcpClient {
   constructor(private adaptor: model.Adaptor, private baseConnector: model.TcpClient) {}
-  connect(options: {host: string, port: number}, connectCallback: Function): model.Socket {
+  connect(options: {host: string, port: number}, connectCallback: Function): model.Stream {
     const socket = this.baseConnector.connect(options, connectCallback);
     return this.adaptor.bindSocket(socket);
   }
@@ -84,9 +84,9 @@ export class NetTcpServer implements model.TcpServer {
     this.adaptor = adaptor;
     return this;
   }
-  onConnection(handler: (socket: model.Socket) => void): void {
+  onConnection(handler: (socket: model.Stream) => void): void {
     this.server.on('connection', (netSocket: net.Socket) => {
-      let socket = new model.Socket(netSocket as model.TwoWayStream, netSocket);
+      let socket = new model.Stream(netSocket as model.TwoWayStream, netSocket);
       if (this.adaptor) {
         socket = this.adaptor.bindSocket(socket);
       }

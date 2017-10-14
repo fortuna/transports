@@ -17,16 +17,17 @@ function main(argv: string[]) {
     console.log('Connected to server via TCP!');
   })
 
-  connection.writeStream.on('end', () => {
+  connection.writeEnd.on('end', () => {
     console.log("Session done");
     process.exit();
   });
-  connection.readStream.on('end', () => {
+  connection.readEnd.on('end', () => {
     console.log("Server disconnected");
     process.exit();
   });
   //connection.on('error', (error) => console.error(error));
-  new model.Socket(process.stdin, process.stdout).bind(connection);
+  const standardIoStream = new model.Stream(process.stdin, process.stdout);
+  standardIoStream.pipe(connection).pipe(standardIoStream);
 }
 
 main(process.argv);
