@@ -5,14 +5,11 @@ export class Stream {
   constructor(public readEnd: NodeJS.ReadableStream, public writeEnd: NodeJS.WritableStream) {}
 
   // Connects the read end of this Stream to the write end of the other stream.
-  pipe(other: Stream): Stream {
+  chain(other: Stream): Stream {
     this.readEnd.pipe(other.writeEnd);
     return new Stream(other.readEnd, this.writeEnd);
   }
 }
-
-// A stream that is both readable and writable.
-export type TwoWayStream = NodeJS.ReadableStream & NodeJS.WritableStream;
 
 export class Adaptor {
   // TODO: Consider reverting to Node.JS Read/Write streams if we can
@@ -21,20 +18,24 @@ export class Adaptor {
               private createRightToLeft: () => Stream) {
   }
 
-  // Bind to another Adaptor to create a new combined adaptor. 
-  bindAadptor(other: Adaptor): Adaptor {
+  // Chains another Adaptor to create a new combined adaptor. 
+  chain(other: Adaptor): Adaptor {
     const createCombinedLeftToRight = () => {
-      return this.createLeftToRight().pipe(other.createLeftToRight());
+      const leftStream = this.createLeftToRight();
+      const rightStream = other.createLeftToRight();
+      return leftStream.chain(rightStream);
     };
     const createCombinedRightToLeft = () => {
-      return other.createRightToLeft().pipe(this.createRightToLeft());
+      const leftStream = this.createRightToLeft();
+      const rightStream = other.createRightToLeft();
+      return rightStream.chain(leftStream);
     };
     return new Adaptor(createCombinedLeftToRight, createCombinedRightToLeft);
   }
 
   // Bind to a Socket to create a new Socket with an adapted interface.
   bindSocket(socket: Stream): Stream {
-    return this.createLeftToRight().pipe(socket).pipe(this.createRightToLeft());
+    return this.createLeftToRight().chain(socket).chain(this.createRightToLeft());
   }
 }
 

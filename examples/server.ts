@@ -1,7 +1,7 @@
 import * as net from 'net';
 
-import * as model from './model';
-import * as transports from './transports';
+import * as model from '../transports/model';
+import * as transports from '../transports/transports';
 import * as random_id from './random_id';
 
 function main() {

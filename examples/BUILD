@@ -7,8 +7,8 @@ ts_library(
     name = "client",
     srcs = ["client.ts"],
     deps = [
-      ":model",
-      ":transports",
+      "//transports:model",
+      "//transports:transports",
     ],
     tsconfig = "//:tsconfig.json",
 )
@@ -23,23 +23,8 @@ nodejs_binary(
 )
 
 ts_library(
-    name = "model",
-    srcs = ["model.ts"],
-    tsconfig = "//:tsconfig.json",
-)
-
-ts_library(
     name = "random_id",
     srcs = ["random_id.ts"],
-    tsconfig = "//:tsconfig.json",
-)
-
-ts_library(
-    name = "transports",
-    srcs = ["transports.ts"],
-    deps = [
-      ":model",
-    ],
     tsconfig = "//:tsconfig.json",
 )
 
@@ -47,9 +32,9 @@ ts_library(
     name = "server",
     srcs = ["server.ts"],
     deps = [
-      ":model",
+      "//transports:model",
       ":random_id",
-      ":transports",
+      "//transports:transports",
     ],
     tsconfig = "//:tsconfig.json",
 )

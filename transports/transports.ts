@@ -15,11 +15,16 @@ import * as stream from 'stream';
 import * as zlib from 'zlib';
 import * as model from './model';
 
-export function streamAsSocket(stream: model.TwoWayStream): model.Stream {
+// ======================================
+// STREAMS
+// ======================================
+
+// Converts a Readable and Writable Node.JS stream to our model Stream.
+export function streamFromNode(stream: NodeJS.ReadableStream & NodeJS.WritableStream): model.Stream {
   return new model.Stream(stream, stream);
 }
 
-export function childProcessSocket(command: string): model.Stream {
+export function childProcessStream(command: string): model.Stream {
   const childProcess = child_process.spawn(command);
   return new model.Stream(childProcess.stdout, childProcess.stdin);
 }
@@ -29,27 +34,27 @@ export function childProcessSocket(command: string): model.Stream {
 // ======================================
 
 export function newPassThroughAdaptor() {
-  return new model.Adaptor(() => streamAsSocket(new stream.PassThrough()),
-                           () => streamAsSocket(new stream.PassThrough()));
+  return new model.Adaptor(() => streamFromNode(new stream.PassThrough()),
+                           () => streamFromNode(new stream.PassThrough()));
 }
 
 // TODO: Flush on new line
 export function newEncryptedAdaptor(cipher: string, password: string): model.Adaptor {
-  return new model.Adaptor(() => streamAsSocket(crypto.createCipher(cipher, password)),
-                           () => streamAsSocket(crypto.createDecipher(cipher, password)));
+  return new model.Adaptor(() => streamFromNode(crypto.createCipher(cipher, password)),
+                           () => streamFromNode(crypto.createDecipher(cipher, password)));
 }
 
 // TODO: Flush on new line
 export function newGzipAdaptor(): model.Adaptor {
-  return new model.Adaptor(() => streamAsSocket(zlib.createGzip()),
-                           () => streamAsSocket(zlib.createGunzip()));
+  return new model.Adaptor(() => streamFromNode(zlib.createGzip()),
+                           () => streamFromNode(zlib.createGunzip()));
 }
 
 // Creates an Adaptor where the leftToRight and rightToLeft sockets will come from
 // the standard input and output of the given commands.
 export function newCommandAdaptor(leftToRightCmd: string, rightToLeftCmd: string) {
-  return new model.Adaptor(() => childProcessSocket(leftToRightCmd),
-                           () => childProcessSocket(rightToLeftCmd));
+  return new model.Adaptor(() => childProcessStream(leftToRightCmd),
+                           () => childProcessStream(rightToLeftCmd));
 }
 
 // A gzip adaptor that uses an external gzip/gunzip tool.
@@ -63,8 +68,8 @@ export function newExternalGzipAdaptor(): model.Adaptor {
 
 export class NetTcpClient implements model.TcpClient {
   connect(options: {host: string, port: number}, connectCallback: Function): model.Stream {
-    const socket = net.createConnection(options, connectCallback) as model.TwoWayStream;
-    return new model.Stream(socket, socket);
+    const socket = net.createConnection(options, connectCallback);
+    return new model.Stream(socket as NodeJS.ReadableStream, socket);
   }
 }
 
@@ -86,7 +91,7 @@ export class NetTcpServer implements model.TcpServer {
   }
   onConnection(handler: (socket: model.Stream) => void): void {
     this.server.on('connection', (netSocket: net.Socket) => {
-      let socket = new model.Stream(netSocket as model.TwoWayStream, netSocket);
+      let socket = new model.Stream(netSocket as NodeJS.ReadableStream, netSocket);
       if (this.adaptor) {
         socket = this.adaptor.bindSocket(socket);
       }

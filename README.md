@@ -1,7 +1,10 @@
-# transports
-Playing with transports and APIs
+# Composable Transports
+
+Playing with transports and APIs in a composable way.
 
 # Concepts
+
+You can find the interfaces for the core concepts at [transports/model.ts](transports/model.ts).
 
 ## Streams
 

@@ -2,8 +2,8 @@
 
 import * as stream from 'stream';
 
-import * as model from './model';
-import * as transports from './transports';
+import * as model from '../transports/model';
+import * as transports from '../transports/transports';
 
 function main(argv: string[]) {
   const tcpClient: model.TcpClient = new transports.AdaptedTcpClient(
@@ -27,7 +27,7 @@ function main(argv: string[]) {
   });
   //connection.on('error', (error) => console.error(error));
   const standardIoStream = new model.Stream(process.stdin, process.stdout);
-  standardIoStream.pipe(connection).pipe(standardIoStream);
+  standardIoStream.chain(connection).chain(standardIoStream);
 }
 
 main(process.argv);
