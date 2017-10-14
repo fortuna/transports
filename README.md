@@ -5,22 +5,35 @@ Playing with transports and APIs
 
 ## Streams
 
-A **Stream** is a unidirectional flow of data. It has two endpoints: you send data on the write end, and receive data on the read end.
+A **Stream** is a unidirectional flow of data. It has two endpoints: you send data on the _write end_, and receive data on the _read end_.
 
 Example of a GZip Stream:
 
 ```
-write plain text ---> [ Gzip Stream ] ---> read gzipped text
+write plain text ───> [ Gzip Stream ] ───> read gzipped text
 ````
 
-You can think of traditional network sockets as a Stream:
+You can think of a traditional network socket as a Stream:
 ```
-write client data ---> [ Socket Stream ] ---> read server data
+write client data ───> [ Socket Stream ] ───> read server data
 ````
+
+### Chaining Streams
+
+You can chain multiple Streams:
+```
+write plain text ──> [ Gzip Stream ] ─> [ Encrypt Stream ] ──> read encrypted gzipped text
+````
+
+Notice that a chain of streams is also a Stream:
+```
+write plain text ──> [ Gzip + Encrypt Stream ] ──> read encrypted gzipped text
+````
+
 
 ## Adaptors
 
-An **Adaptor** converts the input and output of a Stream from one format to another, resulting in a Stream in the new format. In the example below, we convert a Stream in  format B, into a Stream in format A:
+An **Adaptor** converts the input and output of a Stream from one format to another, resulting in a Stream in the new format. In the example below, we adapt a Stream in format B, to a Stream in format A:
 
 ```
                      A <-> B Adaptor
@@ -33,7 +46,7 @@ read format A <─┃── [ B -> A Stream ] <─┃── read format B  ↲
 
 You can see an Adaptor as a pair of streams attached to both ends of the adapted stream, with one being the inverse transformation of the other.
 
-As a real world example, you can imagine format B as being encrypted text, and format A as being plain text, in which case the Adaptor would attach a stream that encrypts text to the write end of the plain text stream, and a stream that decrypts text to the read end of the plain text stream.
+As a real world example, you can imagine format B as being encrypted text, and format A as being plain text, in which case the Adaptor would attach a stream that encrypts text to the write end of the socket stream, and a stream that decrypts text to the read end of the socket stream.
 
 ```
                    Encryption Adaptor
@@ -45,7 +58,7 @@ read plain text <─┃── [ decrypt ] <─┃── read encrypted text  ↲
 ```
 
 Rule:
-> Adaptor + Stream = Stream
+> Stream + Adaptor = Stream
 
 ### Chaining Adaptors
 
@@ -60,7 +73,7 @@ read  <-┃── [ decompress ] <-┃─┃── [ decrypt ] <─┃─┃─�
         ┗━━━━━━━━━━━━━━━━━━━━┛ ┗━━━━━━━━━━━━━━━━━┛ ┗━━━━━━━━━━━━━━━━━┛
 ```
 
-Notice that you can combine Adaptors to form a new Adaptor:
+Notice that the chain of Adaptors is also an Adaptor:
 ```
             Compression + Encryption Adaptor
         ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ ┏━━━━━━━━━━━━━━━━━┓
@@ -72,3 +85,6 @@ read  <-┃── [ decompress ] <-── [ decrypt ] <─┃─┃──       
 
 Rule:
 > Adaptor + Adaptor = Adaptor
+
+
+# Using Streams
