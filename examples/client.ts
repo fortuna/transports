@@ -6,9 +6,9 @@ import * as model from '../transports/model';
 import * as transports from '../transports/transports';
 
 function main(argv: string[]) {
-  const tcpClient: model.TcpClient = new transports.AdaptedTcpClient(
+  const tcpClient: model.ServiceClient = new transports.AdaptedServiceClient(
     // transports.newPassThroughAdaptor(), new transports.NetTcpClient());
-    transports.newExternalGzipAdaptor(), new transports.NetTcpClient());
+    transports.newExternalGzipAdaptor(), new transports.DirectTcpClient());
     // transports.newGzipAdaptor(), new transports.NetTcpClient());
     // transports.newEncryptedAdaptor('aes192', 'a password'), new transports.NetTcpClient());
   //const tcpConnector = new transports.NetTcpClient();

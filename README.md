@@ -33,6 +33,9 @@ Notice that a chain of streams is also a Stream:
 write plain text ──> [ Gzip + Encrypt Stream ] ──> read encrypted gzipped text
 ````
 
+Rule:
+> Stream + Stream = Stream
+
 
 ## Adaptors
 
@@ -90,4 +93,35 @@ Rule:
 > Adaptor + Adaptor = Adaptor
 
 
-# Using Streams
+## Service connections
+
+Service Clients connect to a host:port and, on connection, gives you a server Stream to write data to and read from the server.
+
+Service Servers listen on a host:port and, on connection, gives you a client Stream to write data to and read from the client.
+
+# Implementations
+
+You can find multiple implementations for all those concepts at [transports/transports.ts](transports/transports.ts).
+
+Building blocks:
+
+Streams
+* `childProcessStream`: Starts a subprocess and returns a Stream from its standard IO
+
+Adaptors
+* `newCommandAdaptor`: Creates an Adaptor using the `childProcessStreams` for the two input commands
+
+Services
+* `AdaptedServiceClient`: Allows you to adapt server Streams from an existing ServiceClient
+
+
+Implementations:
+
+Adaptors:
+* newEncryptedAdaptor
+* newGzipAdaptor
+* newExternalGzipAdaptor
+
+Services
+* DirectTcpClient
+* TcpServer

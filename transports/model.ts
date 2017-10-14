@@ -11,6 +11,7 @@ export class Stream {
   }
 }
 
+// Adaptors converts the input and output of Streams to convert them to new data formats.
 export class Adaptor {
   // TODO: Consider reverting to Node.JS Read/Write streams if we can
   // create one from separate read and write streams.
@@ -18,7 +19,7 @@ export class Adaptor {
               private createRightToLeft: () => Stream) {
   }
 
-  // Chains another Adaptor to create a new combined adaptor. 
+  // Chains this Adaptor with the other Adaptor to create a new combined adaptor.
   chain(other: Adaptor): Adaptor {
     const createCombinedLeftToRight = () => {
       const leftStream = this.createLeftToRight();
@@ -33,20 +34,20 @@ export class Adaptor {
     return new Adaptor(createCombinedLeftToRight, createCombinedRightToLeft);
   }
 
-  // Bind to a Socket to create a new Socket with an adapted interface.
-  bindSocket(socket: Stream): Stream {
-    return this.createLeftToRight().chain(socket).chain(this.createRightToLeft());
+  // Creates a new Stream that combines this Adaptor and the given Stream.
+  adapt(innerStream: Stream): Stream {
+    return this.createLeftToRight().chain(innerStream).chain(this.createRightToLeft());
   }
 }
 
-// Allows connections to a server on a hostname:port.
-export interface TcpClient {
+// Allows connections to a service running on a hostname:port.
+export interface ServiceClient {
   connect(options: {host: string, port: number}, connectCallback: Function): Stream
 }
 
 // Runs a server accepting connections on a hostname:port.
-export interface TcpServer {
-  onConnection(handler: (socket: Stream) => void): void    
+export interface ServiceServer {
+  onConnection(handler: (tcpStream: Stream) => void): void    
   on(event: 'error' | 'data' | 'end', handler: Function): void
   listen(): void
 }

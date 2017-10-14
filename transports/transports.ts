@@ -24,6 +24,7 @@ export function streamFromNode(stream: NodeJS.ReadableStream & NodeJS.WritableSt
   return new model.Stream(stream, stream);
 }
 
+// Starts a process running the given command and returns a Stream for its standard IO.
 export function childProcessStream(command: string): model.Stream {
   const childProcess = child_process.spawn(command);
   return new model.Stream(childProcess.stdout, childProcess.stdin);
@@ -63,29 +64,32 @@ export function newExternalGzipAdaptor(): model.Adaptor {
 }
 
 // ======================================
-// TCP Connection support
+// Service connection support
 // ======================================
 
-export class NetTcpClient implements model.TcpClient {
+// A ServiceClient that establishes a direct TCP connection to the target service.
+export class DirectTcpClient implements model.ServiceClient {
   connect(options: {host: string, port: number}, connectCallback: Function): model.Stream {
     const socket = net.createConnection(options, connectCallback);
     return new model.Stream(socket as NodeJS.ReadableStream, socket);
   }
 }
 
-export class AdaptedTcpClient implements model.TcpClient {
-  constructor(private adaptor: model.Adaptor, private baseConnector: model.TcpClient) {}
+// A ServiceClient that adapts the server streams from another ServiceClient.
+export class AdaptedServiceClient implements model.ServiceClient {
+  constructor(private adaptor: model.Adaptor, private baseClient: model.ServiceClient) {}
   connect(options: {host: string, port: number}, connectCallback: Function): model.Stream {
-    const socket = this.baseConnector.connect(options, connectCallback);
-    return this.adaptor.bindSocket(socket);
+    const tcpStream = this.baseClient.connect(options, connectCallback);
+    return this.adaptor.adapt(tcpStream);
   }
 }
 
-export class NetTcpServer implements model.TcpServer {
+// A ServiceServer that listens on TCP connections.
+export class TcpServer implements model.ServiceServer {
   private server = net.createServer();
   private adaptor: model.Adaptor | null = null;
   constructor(private port: number, private hostname?: string) {}
-  setAdaptor(adaptor: model.Adaptor): NetTcpServer {
+  setAdaptor(adaptor: model.Adaptor): TcpServer {
     this.adaptor = adaptor;
     return this;
   }
@@ -93,7 +97,7 @@ export class NetTcpServer implements model.TcpServer {
     this.server.on('connection', (netSocket: net.Socket) => {
       let socket = new model.Stream(netSocket as NodeJS.ReadableStream, netSocket);
       if (this.adaptor) {
-        socket = this.adaptor.bindSocket(socket);
+        socket = this.adaptor.adapt(socket);
       }
       handler(socket);
     });

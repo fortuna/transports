@@ -10,7 +10,7 @@ function main() {
   const srvaddr = '127.0.0.1';
   const srvport = 8080;
 
-  const server: model.TcpServer = new transports.NetTcpServer(srvport, srvaddr)
+  const server: model.ServiceServer = new transports.TcpServer(srvport, srvaddr)
       .setAdaptor(transports.newGzipAdaptor());
   //  .setAdaptor(transports.newPassThroughAdaptor());
   //  .setAdaptor(transports.newEncryptedAdaptor('aes192', 'a password'));
