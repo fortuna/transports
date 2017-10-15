@@ -15,28 +15,24 @@ export class Stream {
 export class Adaptor {
   // TODO: Consider reverting to Node.JS Read/Write streams if we can
   // create one from separate read and write streams.
-  constructor(private createLeftToRight: () => Stream,
-              private createRightToLeft: () => Stream) {
+  constructor(private createDirectStream: () => Stream,
+              private createReverseStream: () => Stream) {
   }
 
   // Chains this Adaptor with the other Adaptor to create a new combined adaptor.
   chain(other: Adaptor): Adaptor {
-    const createCombinedLeftToRight = () => {
-      const leftStream = this.createLeftToRight();
-      const rightStream = other.createLeftToRight();
-      return leftStream.chain(rightStream);
+    const createDirectStream = () => {
+      return this.createDirectStream().chain(other.createDirectStream());
     };
-    const createCombinedRightToLeft = () => {
-      const leftStream = this.createRightToLeft();
-      const rightStream = other.createRightToLeft();
-      return rightStream.chain(leftStream);
+    const createReverseStream = () => {
+      return other.createReverseStream().chain(this.createReverseStream());
     };
-    return new Adaptor(createCombinedLeftToRight, createCombinedRightToLeft);
+    return new Adaptor(createDirectStream, createReverseStream);
   }
 
   // Creates a new Stream that combines this Adaptor and the given Stream.
   adapt(innerStream: Stream): Stream {
-    return this.createLeftToRight().chain(innerStream).chain(this.createRightToLeft());
+    return this.createDirectStream().chain(innerStream).chain(this.createReverseStream());
   }
 }
 

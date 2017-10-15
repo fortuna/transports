@@ -1,8 +1,10 @@
 ///  <reference types="node"/>
 // TODO:
-// - HTTP request over socket
-// - Proxies: HTTP Connect, SOCKS
+// - SOCKS proxy
 // - Example with obsf4
+// - HTTP proxy https://nodejs.org/api/http.html#http_event_connect
+// - HTTP request over socket
+// - newServiceAdaptor
 //
 // App TODO:
 // - Handle encrypt/decrypt errors
@@ -51,16 +53,25 @@ export function newGzipAdaptor(): model.Adaptor {
                            () => streamFromNode(zlib.createGunzip()));
 }
 
-// Creates an Adaptor where the leftToRight and rightToLeft sockets will come from
+// Creates an Adaptor where the direct and reverse streams will come from
 // the standard input and output of the given commands.
-export function newCommandAdaptor(leftToRightCmd: string, rightToLeftCmd: string) {
-  return new model.Adaptor(() => childProcessStream(leftToRightCmd),
-                           () => childProcessStream(rightToLeftCmd));
+export function newCommandAdaptor(directStreamCmd: string, reverseStreamCmd: string) {
+  return new model.Adaptor(() => childProcessStream(directStreamCmd),
+                           () => childProcessStream(reverseStreamCmd));
 }
 
 // A gzip adaptor that uses an external gzip/gunzip tool.
 export function newExternalGzipAdaptor(): model.Adaptor {
   return newCommandAdaptor('gzip', 'gunzip');
+}
+
+// Creates an Adaptor that talks to two services to convert the direct and reverse streams.
+export function newServiceAdaptor(directStreamService: {host: string, port: number}, reverseStreamService: {host: string, port: number}) {
+  const directStreamClient = new DirectTcpClient();
+  const reverseStreamClient = new DirectTcpClient();
+  // TODO: Check for connection errors and buffer while connecting.
+  return new model.Adaptor(() => directStreamClient.connect(directStreamService, ()=>{}),
+                           () => reverseStreamClient.connect(reverseStreamService, ()=>{}));
 }
 
 // ======================================
