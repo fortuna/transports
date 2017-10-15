@@ -7,10 +7,15 @@ import * as stream from 'stream';
 import * as model from './model'
 import * as transports from './transports'
 
+function failOnError(eventEmitter: NodeJS.EventEmitter) {
+  eventEmitter.on('error', (error: Error) => chai.assert.fail(error.message, 'no error'));
+}
+
 function runTests() {
   {
     console.log("[newPassThroughAdaptor]");
     const nodeStream = new stream.PassThrough();
+    failOnError(nodeStream);
     const innerStream = transports.streamFromNode(nodeStream);
     const adaptor = transports.newPassThroughAdaptor();
     const outerStream = adaptor.adapt(innerStream);
@@ -25,6 +30,9 @@ function runTests() {
   {
     console.log("[childProcessStream]");
     const stream = transports.childProcessStream("tr", ["DAT", "dat"]);
+    failOnError(stream.readEnd);
+    failOnError(stream.writeEnd);
+
     const DATA = "DATA";
     let buffer = "";
 
@@ -34,7 +42,7 @@ function runTests() {
         buffer += chunk;
       }
     });
-    stream.readEnd.on('end', () => chai.assert.equal(buffer, DATA.toLowerCase()));
+    stream.readEnd.on('finish', () => chai.assert.equal(buffer, DATA.toLowerCase()));
     chai.assert.isTrue(stream.writeEnd.write(DATA));
     stream.writeEnd.end();
   }
