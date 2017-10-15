@@ -27,8 +27,8 @@ export function streamFromNode(stream: NodeJS.ReadableStream & NodeJS.WritableSt
 }
 
 // Starts a process running the given command and returns a Stream for its standard IO.
-export function childProcessStream(command: string): model.Stream {
-  const childProcess = child_process.spawn(command);
+export function childProcessStream(command: string, args?: string[]): model.Stream {
+  const childProcess = child_process.spawn(command, args);
   return new model.Stream(childProcess.stdout, childProcess.stdin);
 }
 
