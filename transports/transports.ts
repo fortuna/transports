@@ -74,6 +74,25 @@ export function newServiceAdaptor(directStreamService: {host: string, port: numb
                            () => reverseStreamClient.connect(reverseStreamService, ()=>{}));
 }
 
+class Base64EncodeStream extends stream.Transform {
+  _transform(decoded: Buffer, unusedEncoding: string, callback: (error: Error | null, data: string) => {}) {
+    callback(null, decoded.toString('base64'));
+  }
+}
+
+class Base64DecodeStream extends stream.Transform {
+  _transform(encoded: string, unusedEncoding: string, callback: (error: Error | null, data: Buffer) => {}) {
+    callback(null, new Buffer(encoded, 'base64'));
+  }
+}
+
+// Creates an Adaptor that speaks base64. Useful for testing to looking into binary data.
+// It's also an example of how to build your own streams.
+export function newBase64Adaptor() {
+  return new model.Adaptor(() => streamFromNode(new Base64EncodeStream()),
+                           () => streamFromNode(new Base64DecodeStream()));
+}
+
 // ======================================
 // Service connection support
 // ======================================
