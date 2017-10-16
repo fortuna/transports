@@ -1,7 +1,7 @@
 package(default_visibility=["//visibility:public"])
 
-load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
+load("//:defs.bzl", "ts_binary")
 
 ts_library(
     name = "model",
@@ -18,7 +18,7 @@ ts_library(
     tsconfig = "//:tsconfig.json",
 )
 
-ts_library(
+ts_binary(
     name = "transports_test",
     srcs = ["transports_test.ts"],
     deps = [
@@ -26,13 +26,4 @@ ts_library(
         ":transports",
     ],
     tsconfig = "//:tsconfig.json",
-)
-
-nodejs_binary(
-    name = "transports_test_bin",
-    data = [
-        "@//:node_modules",
-        ":transports_test",
-    ],
-    entry_point = "__main__/transports/transports_test.js",
 )

@@ -13,15 +13,15 @@ bazel run @yarn//:yarn
 
 Build the chat client and server:
 ```
-bazel build examples:chat_{client,server}_bin
+bazel build examples:chat_{client,server}
 ```
 
 Run the server:
 ```
-./bazel-bin/examples/chat_server_bin
+./bazel-bin/examples/chat_server
 ```
 
 Run chat clients:
 ```
-echo Hello all | ./bazel-bin/examples/chat_client_bin
+echo Hello all | ./bazel-bin/examples/chat_client
 ```

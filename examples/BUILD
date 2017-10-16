@@ -1,9 +1,9 @@
 package(default_visibility=["//visibility:public"])
 
-load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
+load("//:defs.bzl", "ts_binary")
 
-ts_library(
+ts_binary(
     name = "chat_client",
     srcs = ["chat_client.ts"],
     deps = [
@@ -13,16 +13,7 @@ ts_library(
     tsconfig = "//:tsconfig.json",
 )
 
-nodejs_binary(
-    name = "chat_client_bin",
-    data = [
-        "@//:node_modules",
-        ":chat_client",
-    ],
-    entry_point = "__main__/examples/chat_client.js",
-)
-
-ts_library(
+ts_binary(
     name = "chat_server",
     srcs = ["chat_server.ts"],
     deps = [
@@ -31,15 +22,6 @@ ts_library(
       "//transports:transports",
     ],
     tsconfig = "//:tsconfig.json",
-)
-
-nodejs_binary(
-    name = "chat_server_bin",
-    data = [
-        "@//:node_modules",
-        ":chat_server",
-    ],
-    entry_point = "__main__/examples/chat_server.js",
 )
 
 ts_library(
