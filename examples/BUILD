@@ -17,7 +17,7 @@ nodejs_binary(
     name = "chat_client_bin",
     data = [
         "@//:node_modules",
-        ":client",
+        ":chat_client",
     ],
     entry_point = "__main__/examples/chat_client.js",
 )
@@ -37,7 +37,7 @@ nodejs_binary(
     name = "chat_server_bin",
     data = [
         "@//:node_modules",
-        ":server",
+        ":chat_server",
     ],
     entry_point = "__main__/examples/chat_server.js",
 )
