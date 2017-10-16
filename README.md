@@ -39,7 +39,7 @@ Rule:
 
 ## Adaptors
 
-An **Adaptor** converts the input and output of a Stream from one format to another, resulting in a Stream in the new format. In the example below, we adapt a Stream in format B, to a Stream in format A:
+An **Adaptor** wraps a stream to make it speak a different "language". It converts the input and output of a Stream from one format to another, resulting in a Stream in the new format. In the example below, we adapt a Stream that speaks format B, to a Stream that speaks format A:
 
 ```
                      A <-> B Adaptor
@@ -50,7 +50,7 @@ read format A <─┃── [ B -> A Stream ] <─┃── read format B  ↲
                 ┗━━━━━━━━━━━━━━━━━━━━━━━┛
 ```
 
-You can see an Adaptor as a pair of streams attached to both ends of the adapted stream, with one being the inverse transformation of the other.
+Adaptors atttach a pair of streams to the ends of the inner stream, with one doing the forward transformation and the other doing the reverse transformation.
 
 As a real world example, you can imagine format B as being encrypted text, and format A as being plain text, in which case the Adaptor would attach a stream that encrypts text to the write end of the socket stream, and a stream that decrypts text to the read end of the socket stream.
 
