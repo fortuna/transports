@@ -53,10 +53,10 @@ export function newGzipAdaptor(): model.Adaptor {
                            () => streamFromNode(zlib.createGunzip()));
 }
 
-// Creates an Adaptor where the direct and reverse streams will come from
+// Creates an Adaptor where the forward and reverse streams will come from
 // the standard input and output of the given commands.
-export function newCommandAdaptor(directStreamCmd: string, reverseStreamCmd: string) {
-  return new model.Adaptor(() => childProcessStream(directStreamCmd),
+export function newCommandAdaptor(forwardStreamCmd: string, reverseStreamCmd: string) {
+  return new model.Adaptor(() => childProcessStream(forwardStreamCmd),
                            () => childProcessStream(reverseStreamCmd));
 }
 
@@ -65,12 +65,12 @@ export function newExternalGzipAdaptor(): model.Adaptor {
   return newCommandAdaptor('gzip', 'gunzip');
 }
 
-// Creates an Adaptor that talks to two services to convert the direct and reverse streams.
-export function newServiceAdaptor(directStreamService: {host: string, port: number}, reverseStreamService: {host: string, port: number}) {
-  const directStreamClient = new DirectTcpClient();
+// Creates an Adaptor that talks to two services to convert the forward and reverse streams.
+export function newServiceAdaptor(forwardStreamService: {host: string, port: number}, reverseStreamService: {host: string, port: number}) {
+  const forwardStreamClient = new DirectTcpClient();
   const reverseStreamClient = new DirectTcpClient();
   // TODO: Check for connection errors and buffer while connecting.
-  return new model.Adaptor(() => directStreamClient.connect(directStreamService, ()=>{}),
+  return new model.Adaptor(() => forwardStreamClient.connect(forwardStreamService, ()=>{}),
                            () => reverseStreamClient.connect(reverseStreamService, ()=>{}));
 }
 
