@@ -125,6 +125,9 @@ export class TcpServer implements model.ServiceServer {
   }
   onConnection(handler: (socket: model.Stream) => void): void {
     this.server.on('connection', (netSocket: net.Socket) => {
+      netSocket.on('error', (error: Error) => {
+        console.error(`Socket error: ${error}`);
+      })
       let socket = new model.Stream(netSocket as NodeJS.ReadableStream, netSocket);
       if (this.adaptor) {
         socket = this.adaptor.adapt(socket);

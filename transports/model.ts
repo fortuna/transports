@@ -1,13 +1,28 @@
 ///  <reference types="node"/>
 
+import * as events from 'events';
+
 // Streams are unidrectional flows of data, with a write end and a read end.
 export class Stream {
+  private middleEvents = new events.EventEmitter();
+
   constructor(public readEnd: NodeJS.ReadableStream, public writeEnd: NodeJS.WritableStream) {}
+
+  // Handles errors on any of the stream end.
+  onError(handler: (error: Error) => void) {
+    this.readEnd.on('error', handler);
+    this.middleEvents.on('error', handler);
+    this.writeEnd.on('error', handler);
+  }
 
   // Connects the read end of this Stream to the write end of the other stream.
   chain(other: Stream): Stream {
     this.readEnd.pipe(other.writeEnd);
-    return new Stream(other.readEnd, this.writeEnd);
+    const chainedStream = new Stream(other.readEnd, this.writeEnd);
+    this.readEnd.on('error', chainedStream.middleEvents.emit)
+    other.writeEnd.on('error', chainedStream.middleEvents.emit)
+    // TODO: merge the chainedEvents...
+    return chainedStream;
   }
 }
 

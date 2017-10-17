@@ -21,6 +21,11 @@ Run the server:
 ./bazel-bin/examples/chat_server
 ```
 
+Run tcpdump to see the plain text traffic on the wire:
+```
+sudo tcpdump -An -i lo tcp and host localhost and port 8080
+```
+
 Run chat clients:
 ```
 echo Hello all | ./bazel-bin/examples/chat_client
