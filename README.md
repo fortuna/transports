@@ -95,7 +95,7 @@ Rule:
 
 ## Service Client
 
-A **Service Clients** connects to a host:port and, on connection, gives you a server Stream to write data to and read from the server. They work a lot like a forward-proxy.
+A **Service Client** connects to a host:port and, on connection, gives you a server Stream to write data to and read from the server. They work a lot like a forward-proxy.
 
 ## Service Server
 
