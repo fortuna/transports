@@ -80,8 +80,8 @@ Restart the client:
 ```
 TRANSPORT_ADAPTOR='{
   "streams":{
-    "forward":{ "process": {"command":["/usr/bin/openssl","aes-192-cbc","-pass", "pass:asecret"]}},
-    "reverse":{ "process": {"command":["/usr/bin/openssl","aes-192-cbc","-d","-pass","pass:asecret"]}}
+    "forward": {"process": {"command":["/usr/bin/openssl","aes-192-cbc","-pass", "pass:asecret"]}},
+    "reverse": {"process": {"command":["/usr/bin/openssl","aes-192-cbc","-d","-pass","pass:asecret"]}}
   }
 }' ./bazel-bin/examples/chat_client
 ```
@@ -90,8 +90,23 @@ If you want to observe on tcpdump that the transformation is actually happening,
 ```
 TRANSPORT_ADAPTOR='{
   "streams":{
-    "forward":{ "process": {"command":["tr", "[:upper:][:lower:]", "[:lower:][:upper:]"]}},
-    "reverse":{ "process": {"command":["tr", "[:lower:][:upper:]","[:upper:][:lower:]"]}}
+    "forward": {"process": {"command":["tr", "[:upper:][:lower:]", "[:lower:][:upper:]"]}},
+    "reverse": {"process": {"command":["tr", "[:lower:][:upper:]","[:upper:][:lower:]"]}}
   }
 }'
 ```
+
+### Using an external service as an adaptor.
+
+This is not yet implemented, but we could also use a service running on a host:port as a Stream,
+and join two of them to make an Adaptor. The config would look like:
+
+```
+TRANSPORT_ADAPTOR='{
+  "streams":{
+    "forward": {"service": {"host": "localhost", "port": "9090"}},
+    "reverse": {"service": {"host": "localhost", "port": "9091"}}
+  }
+}'
+```
+
