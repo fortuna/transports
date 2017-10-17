@@ -5,13 +5,17 @@ import * as stream from 'stream';
 import * as model from '../transports/model';
 import * as transports from '../transports/transports';
 
+function createClientAdaptor(): model.Adaptor {
+  if (!process.env['TRANSPORT_ADAPTOR']) {
+    return transports.newPassThroughAdaptor();
+  }
+  const config = JSON.parse(process.env['TRANSPORT_ADAPTOR']) as transports.AdaptorConfigJson;
+  return transports.newAdaptorFromConfig(config);
+}
+
 function main(argv: string[]) {
   const tcpClient: model.ServiceClient = new transports.AdaptedServiceClient(
-    // transports.newPassThroughAdaptor(), new transports.NetTcpClient());
-    transports.newExternalGzipAdaptor(), new transports.DirectTcpClient());
-    // transports.newGzipAdaptor(), new transports.NetTcpClient());
-    // transports.newEncryptedAdaptor('aes192', 'a password'), new transports.NetTcpClient());
-  //const tcpConnector = new transports.NetTcpClient();
+    createClientAdaptor(), new transports.DirectTcpClient());
 
   const connection = tcpClient.connect({port: 8080, host: 'localhost'}, () => {
     console.log('Connected to server via TCP!');

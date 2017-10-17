@@ -2,16 +2,22 @@ import * as model from '../transports/model';
 import * as transports from '../transports/transports';
 import * as random_id from './random_id';
 
+function createServer(serverHost: string, serverPort: number): model.ServiceServer {
+  const server: transports.TcpServer = new transports.TcpServer(serverPort, serverHost);
+  if (process.env['TRANSPORT_ADAPTOR']) {
+    const config = JSON.parse(process.env['TRANSPORT_ADAPTOR']) as transports.AdaptorConfigJson;
+    server.setAdaptor(transports.newAdaptorFromConfig(config));
+  }
+  return server;
+}
+
 function main() {
   const sockets = [] as model.Stream[];
 
-  const srvaddr = '127.0.0.1';
-  const srvport = 8080;
+  const serverHost = '127.0.0.1';
+  const serverPort = 8080;
 
-  const server: model.ServiceServer = new transports.TcpServer(srvport, srvaddr)
-      .setAdaptor(transports.newGzipAdaptor());
-  //  .setAdaptor(transports.newPassThroughAdaptor());
-  //  .setAdaptor(transports.newEncryptedAdaptor('aes192', 'a password'));
+  const server: model.ServiceServer = createServer(serverHost, serverPort);
 
   server.onConnection((connection: model.Stream) => {
     // You can only get the host and port if you know it's a TCP stream.
@@ -48,7 +54,7 @@ function main() {
   });
 
   server.listen();
-  console.log('Server Created at ' + srvaddr + ':' + srvport + '\n');
+  console.log('Server Created at ' + serverHost + ':' + serverPort + '\n');
 }
 
 main()

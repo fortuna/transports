@@ -1,5 +1,6 @@
 ///  <reference types="node"/>
 // TODO:
+// - Config-based adaptor
 // - SOCKS proxy
 // - Example with obsf4
 // - HTTP proxy https://nodejs.org/api/http.html#http_event_connect
@@ -27,8 +28,8 @@ export function streamFromNode(stream: NodeJS.ReadableStream & NodeJS.WritableSt
 }
 
 // Starts a process running the given command and returns a Stream for its standard IO.
-export function childProcessStream(command: string, args?: string[]): model.Stream {
-  const childProcess = child_process.spawn(command, args);
+export function childProcessStream(command: string[]): model.Stream {
+  const childProcess = child_process.spawn(command[0], command.slice(1));
   return new model.Stream(childProcess.stdout, childProcess.stdin);
 }
 
@@ -55,14 +56,14 @@ export function newGzipAdaptor(): model.Adaptor {
 
 // Creates an Adaptor where the forward and reverse streams will come from
 // the standard input and output of the given commands.
-export function newCommandAdaptor(forwardStreamCmd: string, reverseStreamCmd: string) {
+export function newCommandAdaptor(forwardStreamCmd: string[], reverseStreamCmd: string[]) {
   return new model.Adaptor(() => childProcessStream(forwardStreamCmd),
                            () => childProcessStream(reverseStreamCmd));
 }
 
 // A gzip adaptor that uses an external gzip/gunzip tool.
 export function newExternalGzipAdaptor(): model.Adaptor {
-  return newCommandAdaptor('gzip', 'gunzip');
+  return newCommandAdaptor(['gzip'], ['gunzip']);
 }
 
 // Creates an Adaptor that talks to two services to convert the forward and reverse streams.
@@ -88,9 +89,70 @@ class Base64DecodeStream extends stream.Transform {
 
 // Creates an Adaptor that speaks base64. Useful for testing to looking into binary data.
 // It's also an example of how to build your own streams.
-export function newBase64Adaptor() {
+export function newBase64Adaptor(): model.Adaptor {
   return new model.Adaptor(() => streamFromNode(new Base64EncodeStream()),
                            () => streamFromNode(new Base64DecodeStream()));
+}
+
+// Configuration for creating a Stream
+export interface StreamConfigJson {
+  passthrough?: {}
+  process?: {
+    command?: string[]
+  }
+}
+
+export interface StreamsAdaptorConfigJson {
+  forward?: StreamConfigJson
+  reverse?: StreamConfigJson
+}
+
+// Configuration for creating an Adaptor
+export interface AdaptorConfigJson {
+  passthrough?: {}
+  encrypted?: {
+    cipher?: string
+    secret?: string
+  }
+  gzip?: {}
+  streams?: StreamsAdaptorConfigJson
+}
+
+function newStreamFactoryFromConfig(config: StreamConfigJson): () => model.Stream {
+  if (config.passthrough) {
+    return () => streamFromNode(new stream.PassThrough());
+  } else if (config.process) {
+    const processConfig = config.process;
+    if (!processConfig.command) {
+      throw new Error(`Invalid childProcessStream config: ${JSON.stringify(processConfig)}`);
+    }
+    return () => childProcessStream(processConfig.command as string[]);
+  }
+  throw new Error(`Invalid Stream config: ${JSON.stringify(config)}`);
+}
+
+function newStreamsAdaptorFromConfig(config: StreamsAdaptorConfigJson): model.Adaptor {
+  if (config.forward === undefined || config.reverse === undefined) {
+    throw new Error(`Invalid streams Adaptor config: ${config}`);
+  }
+  return new model.Adaptor(newStreamFactoryFromConfig(config.forward),
+                           newStreamFactoryFromConfig(config.reverse));
+}
+
+export function newAdaptorFromConfig(config: AdaptorConfigJson) {
+  if (config.passthrough) {
+    return newPassThroughAdaptor();
+  } else if (config.encrypted) {
+    if (config.encrypted.cipher === undefined || config.encrypted.secret === undefined) {
+      throw new Error(`Invalid encrypted Adaptor config: ${JSON.stringify(config.encrypted)}`);
+    }
+    return newEncryptedAdaptor(config.encrypted.cipher, config.encrypted.secret);
+  } else if (config.gzip) {
+    return newGzipAdaptor();
+  } else if (config.streams) {
+    return newStreamsAdaptorFromConfig(config.streams);
+  }
+  throw new Error(`Invalid Adaptor config: ${JSON.stringify(config)}`);
 }
 
 // ======================================
