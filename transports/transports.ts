@@ -1,6 +1,5 @@
 ///  <reference types="node"/>
 // TODO:
-// - Config-based adaptor
 // - SOCKS proxy
 // - Example with obsf4
 // - HTTP proxy https://nodejs.org/api/http.html#http_event_connect
