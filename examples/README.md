@@ -100,7 +100,7 @@ TRANSPORT_ADAPTOR='{
 }'
 ```
 
-## Chaining adaptors
+### Chaining adaptors
 
 You can chain multiple adaptors with the "chain" configuration. You can try the configuration below and
 use tcpdump to see both transformations (reverse case and reverse brackets) on the wire.
