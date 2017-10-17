@@ -62,7 +62,7 @@ Notice that if you enable the adaptor on the client, but not on the server, or i
 
 ### Using an external binary as an adaptor.
 
-It's possible to use external binaries as adaptors. You just need to specify the commands to do the forward and reverse transformations. The framework with start the commands for each new stream, and communication happens via the standard I/O.
+It's possible to use external binaries as adaptors. You just need to specify the commands to do the forward and reverse transformations. The framework will start the commands for each new stream, and communication happens via the standard I/O.
 
 Let's use the `openssl` binary for encryption.
 
