@@ -35,18 +35,25 @@ Run chat clients on different terminals and type some text:
 
 You should see the text you typed on the tcpdump output
 
+> Note: Some of the example Adaptors below buffer the input and output, so you you may need to type
+enough text or close the stream (^D) to get it transferred.
+
 ### Adding an encyption Adaptor
 
 You can specify the Adaptor to use via the `TRANSPORT_ADAPTOR` environment variable.
 
 Restart the server:
 ```
-TRANSPORT_ADAPTOR='{"encrypted":{"cipher":"aes-192-cdb","secret":"asecret"}}' ./bazel-bin/examples/chat_server
+TRANSPORT_ADAPTOR='{
+  "encrypted": {"cipher": "aes-192-cdb", "secret": "asecret"}
+}' ./bazel-bin/examples/chat_server
 ```
 
 Restart the clients:
 ```
-TRANSPORT_ADAPTOR='{"encrypted":{"cipher":"aes192-cbc","secret":"asecret"}}' ./bazel-bin/examples/chat_client
+TRANSPORT_ADAPTOR='{
+  "encrypted": {"cipher": "aes192-cbc", "secret": "asecret"}
+}' ./bazel-bin/examples/chat_client
 ```
 
 Type some text on the client. You won't see the plain text on tcpdump anymore.
@@ -55,7 +62,7 @@ Notice that if you enable the adaptor on the client, but not on the server, or i
 
 ### Using an external binary as an adaptor.
 
-It's possible to use external binaries as adaptors. You just need to specify the commands to do the forward and reverse transformations.
+It's possible to use external binaries as adaptors. You just need to specify the commands to do the forward and reverse transformations. The framework with start the commands for each new stream, and communication happens via the standard I/O.
 
 Let's use the `openssl` binary for encryption.
 
@@ -77,4 +84,14 @@ TRANSPORT_ADAPTOR='{
     "reverse":{ "process": {"command":["/usr/bin/openssl","aes-192-cbc","-d","-pass","pass:asecret"]}}
   }
 }' ./bazel-bin/examples/chat_client
+```
+
+If you want to observe on tcpdump that the transformation is actually happening, you can try a simple Adaptor that just reverses the case of the characters:
+```
+TRANSPORT_ADAPTOR='{
+  "streams":{
+    "forward":{ "process": {"command":["tr", "[:upper:][:lower:]", "[:lower:][:upper:]"]}},
+    "reverse":{ "process": {"command":["tr", "[:lower:][:upper:]","[:upper:][:lower:]"]}}
+  }
+}'
 ```
