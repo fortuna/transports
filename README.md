@@ -93,36 +93,17 @@ Rule:
 > Adaptor + Adaptor = Adaptor
 
 
-## Service connections
+## Service Client
 
-Service Clients connect to a host:port and, on connection, gives you a server Stream to write data to and read from the server.
+A **Service Clients** connects to a host:port and, on connection, gives you a server Stream to write data to and read from the server. They work a lot like a forward-proxy.
 
-Service Servers listen on a host:port and, on connection, gives you a client Stream to write data to and read from the client.
+## Service Server
+
+A **Service Server** listens on a host:port and, on connection, gives you a client Stream to write data to and read from the client. They work a lot like a reverse-proxy.
 
 # Implementations
 
 You can find multiple implementations for all those concepts at [transports/transports.ts](transports/transports.ts).
-You can find examples using those implementations at [examples/](examples).
 
-Building blocks:
+Multiple examples on how to use the transports can be found on the [Examples page](examples/).
 
-Streams
-* `childProcessStream`: Starts a subprocess and returns a Stream from its standard IO
-
-Adaptors
-* `newCommandAdaptor`: Creates an Adaptor using the `childProcessStreams` for the two input commands
-
-Services
-* `AdaptedServiceClient`: Allows you to adapt server Streams from an existing ServiceClient
-
-
-Implementations:
-
-Adaptors:
-* newEncryptedAdaptor
-* newGzipAdaptor
-* newExternalGzipAdaptor
-
-Services
-* DirectTcpClient
-* TcpServer
