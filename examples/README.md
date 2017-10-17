@@ -62,7 +62,7 @@ Notice that if you enable the adaptor on the client, but not on the server, or i
 
 ### Using an external binary as an adaptor.
 
-It's possible to use external binaries as adaptors. You just need to specify the commands to do the forward and reverse transformations. The framework will start the commands for each new stream, and communication happens via the standard I/O.
+It's possible to use external binaries as adaptors. You just need to specify the commands to do the forward and reverse transformations. The framework will start the commands for each new stream, and communication will happen via the standard I/O of the subprocess.
 
 Let's use the `openssl` binary for encryption.
 
@@ -70,8 +70,8 @@ Restart the server:
 ```
 TRANSPORT_ADAPTOR='{
   "streams":{
-    "forward":{ "process": {"command":["/usr/bin/openssl","aes-192-cbc","-pass","pass:asecret"]}},
-    "reverse":{ "process": {"command":["/usr/bin/openssl","aes-192-cbc","-d","-pass","pass:asecret"]}}
+    "forward": {"process": {"command":["/usr/bin/openssl","aes-192-cbc","-pass","pass:asecret"]}},
+    "reverse": {"process": {"command":["/usr/bin/openssl","aes-192-cbc","-d","-pass","pass:asecret"]}}
   }
 }' ./bazel-bin/examples/chat_server
 ```
@@ -91,7 +91,7 @@ If you want to observe on tcpdump that the transformation is actually happening,
 TRANSPORT_ADAPTOR='{
   "streams":{
     "forward": {"process": {"command":["tr", "[:upper:][:lower:]", "[:lower:][:upper:]"]}},
-    "reverse": {"process": {"command":["tr", "[:lower:][:upper:]","[:upper:][:lower:]"]}}
+    "reverse": {"process": {"command":["tr", "[:lower:][:upper:]", "[:upper:][:lower:]"]}}
   }
 }'
 ```
