@@ -86,16 +86,6 @@ TRANSPORT_ADAPTOR='{
 }' ./bazel-bin/examples/chat_client
 ```
 
-If you want to observe on tcpdump that the transformation is actually happening, you can try a simple Adaptor that just reverses the case of the characters:
-```
-TRANSPORT_ADAPTOR='{
-  "streams":{
-    "forward": {"process": {"command":["tr", "[:upper:][:lower:]", "[:lower:][:upper:]"]}},
-    "reverse": {"process": {"command":["tr", "[:lower:][:upper:]", "[:upper:][:lower:]"]}}
-  }
-}'
-```
-
 ### Using an external service as an adaptor.
 
 This is not yet implemented, but we could also use a service running on a host:port as a Stream,
@@ -110,3 +100,25 @@ TRANSPORT_ADAPTOR='{
 }'
 ```
 
+## Chaining adaptors
+
+You can chain multiple adaptors with the "chain" configuration. You can try the configuration below and
+use tcpdump to see both transformations (reverse case and reverse brackets) on the wire.
+
+```
+TRANSPORT_ADAPTOR='{
+  "chain":[
+    {
+      "streams": {
+        "forward": {"process": {"command": ["tr", "[:upper:][:lower:]", "[:lower:][:upper:]"]}},
+        "reverse": {"process": {"command": ["tr", "[:lower:][:upper:]", "[:upper:][:lower:]"]}}
+      }
+    }, {
+      "streams": {
+        "forward": {"process": {"command": ["tr", "!{}[]()", "?}{][)("]}},
+        "reverse": {"process": {"command": ["tr", "?}{][)(", "!{}[]()"]}}
+      }
+    }
+  ]
+}'
+```

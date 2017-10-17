@@ -115,6 +115,7 @@ export interface AdaptorConfigJson {
   }
   gzip?: {}
   streams?: StreamsAdaptorConfigJson
+  chain?: AdaptorConfigJson[]
 }
 
 function newStreamFactoryFromConfig(config: StreamConfigJson): () => model.Stream {
@@ -138,7 +139,7 @@ function newStreamsAdaptorFromConfig(config: StreamsAdaptorConfigJson): model.Ad
                            newStreamFactoryFromConfig(config.reverse));
 }
 
-export function newAdaptorFromConfig(config: AdaptorConfigJson) {
+export function newAdaptorFromConfig(config: AdaptorConfigJson): model.Adaptor {
   if (config.passthrough) {
     return newPassThroughAdaptor();
   } else if (config.encrypted) {
@@ -150,6 +151,17 @@ export function newAdaptorFromConfig(config: AdaptorConfigJson) {
     return newGzipAdaptor();
   } else if (config.streams) {
     return newStreamsAdaptorFromConfig(config.streams);
+  } else if (config.chain) {
+    let chainedAdaptor = null;
+    for (let subconfig of config.chain) {
+      const adaptor = newAdaptorFromConfig(subconfig);
+      if (chainedAdaptor === null) {
+        chainedAdaptor = adaptor;
+      } else {
+        chainedAdaptor = chainedAdaptor.chain(adaptor);
+      }
+    }
+    return chainedAdaptor ? chainedAdaptor : newPassThroughAdaptor();
   }
   throw new Error(`Invalid Adaptor config: ${JSON.stringify(config)}`);
 }
