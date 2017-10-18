@@ -100,6 +100,27 @@ TRANSPORT_ADAPTOR='{
 }'
 ```
 
+### Using different implementations on client and server
+
+Client and server may have different Adaptor implementations of the same protocol and still communicate.
+
+In this example, the server uses the native gzip Adaptor:
+```
+TRANSPORT_ADAPTOR='{
+  "gzip":{}
+}' ./bazel-bin/examples/chat_server
+```
+
+While the client uses an Adaptor based on the gzip and gunzip commands:
+```
+TRANSPORT_ADAPTOR='{
+  "streams":{
+    "forward": {"process": {"command":["gzip"]}},
+    "reverse": {"process": {"command":["gunzip"]}}
+  }
+}' ./bazel-bin/examples/chat_client
+```
+
 ### Chaining adaptors
 
 You can chain multiple adaptors with the "chain" configuration. You can try the configuration below and
